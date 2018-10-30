@@ -17,7 +17,6 @@ def login(request):
             json_data = json.loads(request.body)
 
         email = json_data['email']
-        username = json_data['username']
         password = json_data['password']
         with connection.cursor() as cursor:
             cursor.execute('SELECT Email FROM User WHERE Email = %s AND Password = %s', [email, password])
@@ -41,14 +40,15 @@ def register(request):
         email = json_data['email']
         username = json_data['username']
         password = json_data['password']
+        gender = json_data['gender']
         with connection.cursor() as cursor:
             cursor.execute('SELECT Email FROM User WHERE Email = %s', [email])
             row = cursor.fetchone()
             if row is not None:
                 return HttpResponse("Register failed")
             cursor.execute(
-                'INSERT INTO User (Email, Username, Password) VALUES (%s, %s, %s)',
-                [email, username, password])
+                'INSERT INTO User (Email, Username, Password, Gender) VALUES (%s, %s, %s, %s)',
+                [email, username, password, gender])
         return HttpResponse(json_data['email'])
     else:
         return HttpResponse('Register page placeholder')
