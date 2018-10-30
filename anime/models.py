@@ -18,6 +18,9 @@ class Anime(models.Model):
         db_table='AnimeMadeBy',
         help_text='Each anime can be made by lots of Studios.')
 
+    class Meta:
+        managed = False
+
     def __str__(self):
         return self.name
 
@@ -32,6 +35,8 @@ class Studio(models.Model):
 
     # TODO: We may need a reference to the studio's website
     #website = models.TextField(verbose_name='StudioWebsite', blank=True, null=True)
+    class Meta:
+        managed = False
 
     def __str__(self):
         return self.name
@@ -56,6 +61,9 @@ class User(models.Model):
     likeTag = models.ManyToManyField('Tag')
     likeEpisode = models.ManyToManyField('Episode')
 
+    class Meta:
+        managed = False
+
     def __str__(self):
         return self.username
 
@@ -71,6 +79,7 @@ class RateAnime(models.Model):
     class Meta:
         # Use this to represent two cols together as primary keys
         unique_together = (('user', 'anime'), )
+        managed = False
 
 
 class WatchStatus(models.Model):
@@ -81,6 +90,7 @@ class WatchStatus(models.Model):
     class Meta:
         # Use this to represent two cols together as primary keys
         unique_together = (('user', 'anime'), )
+        managed = False
 
 
 class Tag(models.Model):
@@ -88,6 +98,9 @@ class Tag(models.Model):
 
     hasAnime = models.ManyToManyField(
         Anime, db_table='TagHasAnime', help_text='Tag has what animes')
+
+    class Meta:
+        managed = False
 
     def __str__(self):
         return self.name
@@ -104,6 +117,7 @@ class Episode(models.Model):
 
     class Meta:
         unique_together = (('anime_name', 'episode_num'), )
+        managed = False
 
     def __str__(self):
         return self.anime_name + ': ' + self.episode_num
@@ -120,15 +134,18 @@ class WatchEpisodeProgress(models.Model):
 
     class Meta:
         unique_together = (('user', 'episode'), )
+        managed = False
 
 class SetTag(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
     class Meta:
         unique_together = (('user', 'tag'), )
+        managed = False
 
 class LikeAnime(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     anime = models.ForeignKey(Anime, on_delete=models.CASCADE)
     class Meta:
         unique_together = (('user', 'anime'), )
+        managed = False
