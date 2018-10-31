@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 ### Custom packages
 from anime.utils import post_json
 from anime.utils import dictfetchall
+from anime.utils import tuple_to_list
 
 
 # Create your views here.
@@ -58,10 +59,33 @@ def register(request):
 @csrf_exempt
 def anime_display(request):
     if request.method == 'GET':
+        json_data = post_json(request)
+        email = json_data['email']
+
         query_dict = None
-        with connection.cursor() as cursor:
-            cursor.execute('SELECT animeID, name FROM Anime')
-            query_dict = dictfetchall(cursor)
+        with connection.cursor() as anime_cursor:
+            anime_cursor.execute('SELECT animeID, name FROM Anime')
+        with connection.cursor() as like_cursor:
+            like_cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', email)
+        with connection.cursor() as watch_cursor:
+            watch_cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', email)
+        animes = tuple_to_list(anime_cursor.fetchall())
+        likes = tuple_to_list(like_cursor.fetchall())
+        watch = tuple_to_list(watch_cursor.fetchall())
+        for i in animes:
+            i.append([i[0]] in likes)
+            flag = True
+            for j in watch:
+            if i[0] in j:
+                i.append(j[1])
+                flag = False
+                break
+            if flag:
+                i.append(0)
+        columns = [col[0] for col in anime_cursor.description].append('likestatus')
+        columns.append('watchstatus')
+        query_dict = [dict(zip(columns, row)) for row in anime_cursor.fetchall()]
+            # query_dict = dictfetchall(cursor)
         if query_dict is not None:
             return HttpResponse(json.dumps(query_dict))
         else:
