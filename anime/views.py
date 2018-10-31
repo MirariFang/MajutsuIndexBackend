@@ -66,9 +66,9 @@ def anime_display(request):
         with connection.cursor() as anime_cursor:
             anime_cursor.execute('SELECT animeID, name FROM Anime')
         with connection.cursor() as like_cursor:
-            like_cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', email)
+            like_cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
         with connection.cursor() as watch_cursor:
-            watch_cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', email)
+            watch_cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
         animes = tuple_to_list(anime_cursor.fetchall())
         likes = tuple_to_list(like_cursor.fetchall())
         watch = tuple_to_list(watch_cursor.fetchall())
