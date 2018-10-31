@@ -16,3 +16,6 @@ def dictfetchall(cursor):
         dict(zip(columns, row))
         for row in cursor.fetchall()
     ]
+
+def tuple_to_list(t):
+    return [list(i) for i in t]
