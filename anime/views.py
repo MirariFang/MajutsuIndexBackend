@@ -113,14 +113,14 @@ def fav(request):
     return HttpResponse('Fav anime placeholder')
 
 @csrf_exempt
-def change_status(request):
+def change_watch_status(request):
     if request.method == 'GET':
         json_data = post_json(request)
         email = json_data['email']
         animeID = json_data['animeID']
         with connection.cursor() as cursor:
             cursor.execute(
-                'SELECT a.animeID AS animeID, a.name AS name, w.status AS status FROM Anime AS a, WatchStatus AS w WHERE w.email = %s AND w.animeID = %s AND w.animeID = a.animeID',
+                'SELECT a.animeID AS animeID, a.name AS name, w.status AS watchstatus FROM Anime AS a, WatchStatus AS w WHERE w.email = %s AND w.animeID = %s AND w.animeID = a.animeID',
                 [email, animeID])
             query_dict = dictfetchall(cursor)
             if query_dict is not None:
@@ -131,7 +131,7 @@ def change_status(request):
         json_data = post_json(request)
         email = json_data['email']
         animeID = json_data['animeID']
-        status = json_data['status']
+        status = json_data['watchstatus']
         with connection.cursor() as cursor:
             cursor.execute('SELECT status FROM WatchStatus WHERE email = %s AND animeID = %s', [email, animeID])
             if cursor.fetchone() is None:

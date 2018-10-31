@@ -9,6 +9,6 @@ urlpatterns = [
     path('animes/', views.anime_display, name='anime_display'),
     path('animes/recommend/', views.recommend, name='recommend'),
     path('animes/fav/', views.fav, name='favorite'),
-    path('animes/status/', views.change_status, name='status'),
+    path('animes/watchstatus/', views.change_watch_status, name='status'),
     path('animes/debugjson/', views.debug_json, name='debug_json')
 ]
