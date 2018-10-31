@@ -24,7 +24,7 @@ SECRET_KEY = '-5)v%a3+#(x(t8)1)vk4*d-=g8y2vo$+9856gp@486p2ft_e#5'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
+APPEND_SLASH = False
 ALLOWED_HOSTS = []
 
 
@@ -37,19 +37,25 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'anime.apps.AnimeConfig'
+    'anime.apps.AnimeConfig',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
 ]
 
+CORS_ORIGIN_ALLOW_ALL = True
+# MIDDLEWARE_CLASSES = (
+#     'anime.CorsMiddleware'
+# )
 ROOT_URLCONF = 'majutsuIndex.urls'
 
 TEMPLATES = [
