@@ -1,3 +1,4 @@
 .vscode/
 anime/__pycache__/
 majutsuIndex/__pycache__/
+anime/migrations/
