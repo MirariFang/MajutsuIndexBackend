@@ -63,15 +63,22 @@ def anime_display(request):
         email = json_data['email']
 
         query_dict = None
+        # with connection.cursor() as anime_cursor:
+        #     anime_cursor.execute('SELECT animeID, name FROM Anime')
+        # with connection.cursor() as like_cursor:
+        #     like_cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
+        # with connection.cursor() as watch_cursor:
+        #     watch_cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
+        # animes = tuple_to_list(anime_cursor.fetchall())
+        # likes = tuple_to_list(like_cursor.fetchall())
+        # watch = tuple_to_list(watch_cursor.fetchall())
         with connection.cursor() as anime_cursor:
-            anime_cursor.execute('SELECT animeID, name FROM Anime')
-        with connection.cursor() as like_cursor:
-            like_cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
-        with connection.cursor() as watch_cursor:
-            watch_cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
-        animes = tuple_to_list(anime_cursor.fetchall())
-        likes = tuple_to_list(like_cursor.fetchall())
-        watch = tuple_to_list(watch_cursor.fetchall())
+            cursor.execute('SELECT animeID, name FROM Anime')
+            animes = tuple_to_list(cursor.fetchall())
+            cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
+            likes = tuple_to_list(cursor.fetchall())
+            cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
+            watch = tuple_to_list(cursor.fetchall())
         for i in animes:
             i.append([i[0]] in likes)
             flag = True
@@ -93,8 +100,26 @@ def anime_display(request):
     
     return HttpResponse('Anime display placeholder')
 
-
+@csrf_exempt
 def recommend(request):
+    return HttpResponse('Recommend tab placeholder')
+
+@csrf_exempt
+def search(request):
+    if request.method == 'GET':
+        json_data = post_json(request)
+        keyword = json_data['name']
+
+        query_dict = None
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT animeID, name, releaseYear FROM Anime WHERE name LIKE \'\%%s\%\'', [name])
+            # animes = tuple_to_list(cursor.fetchall())
+            query_dict = dictfetchall(cursor)
+        if query_dict is not None:
+            return HttpResponse(json.dumps(query_dict))
+        else:
+            return HttpResponse('empty')
+            
     return HttpResponse('Recommend tab placeholder')
 
 @csrf_exempt
