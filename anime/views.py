@@ -108,18 +108,22 @@ def recommend(request):
 def search(request):
     if request.method == 'GET':
         json_data = post_json(request)
+        email = json_data['email']
         keyword = json_data['name']
 
         query_dict = None
         with connection.cursor() as cursor:
-            cursor.execute('SELECT animeID, name, releaseYear FROM Anime WHERE name LIKE \'\%%s\%\'', [name])
+            cursor.execute('''
+                SELECT animeID, name, releaseYear, status, fav 
+                FROM Anime JOIN WatchStatus 
+                WHERE email=%s AND name LIKE \'\%%s\%\'''', [email, name])
             # animes = tuple_to_list(cursor.fetchall())
             query_dict = dictfetchall(cursor)
         if query_dict is not None:
             return HttpResponse(json.dumps(query_dict))
         else:
             return HttpResponse('empty')
-            
+
     return HttpResponse('Recommend tab placeholder')
 
 @csrf_exempt
