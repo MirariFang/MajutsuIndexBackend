@@ -72,9 +72,10 @@ def anime_display(request):
         # animes = tuple_to_list(anime_cursor.fetchall())
         # likes = tuple_to_list(like_cursor.fetchall())
         # watch = tuple_to_list(watch_cursor.fetchall())
-        with connection.cursor() as anime_cursor:
+        with connection.cursor() as cursor:
             cursor.execute('SELECT animeID, name FROM Anime')
             animes = tuple_to_list(cursor.fetchall())
+            atrributes = cursor.description
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
             likes = tuple_to_list(cursor.fetchall())
             cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
@@ -83,15 +84,15 @@ def anime_display(request):
             i.append([i[0]] in likes)
             flag = True
             for j in watch:
-            if i[0] in j:
+            if i[0] = j[0]:
                 i.append(j[1])
                 flag = False
                 break
             if flag:
                 i.append(0)
-        columns = [col[0] for col in anime_cursor.description].append('likestatus')
+        columns = [col[0] for col in atrributes].append('likestatus')
         columns.append('watchstatus')
-        query_dict = [dict(zip(columns, row)) for row in anime_cursor.fetchall()]
+        query_dict = [dict(zip(columns, row)) for row in animes]
             # query_dict = dictfetchall(cursor)
         if query_dict is not None:
             return HttpResponse(json.dumps(query_dict))
@@ -113,12 +114,34 @@ def search(request):
 
         query_dict = None
         with connection.cursor() as cursor:
+            # cursor.execute('''
+            #     SELECT animeID, name, status, fav 
+            #     FROM Anime JOIN WatchStatus 
+            #     WHERE email=%s AND name LIKE \'\%%s\%\'''', [email, name])
             cursor.execute('''
-                SELECT animeID, name, releaseYear, status, fav 
-                FROM Anime JOIN WatchStatus 
-                WHERE email=%s AND name LIKE \'\%%s\%\'''', [email, name])
-            # animes = tuple_to_list(cursor.fetchall())
-            query_dict = dictfetchall(cursor)
+                SELECT animeID, name 
+                FROM Anime 
+                WHERE name LIKE \'\%%s\%\'''', [name])
+            results = tuple_to_list(cursor.fetchall())
+            atrributes = cursor.description
+            cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
+            likes = tuple_to_list(cursor.fetchall())
+            cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
+            watch = tuple_to_list(cursor.fetchall())
+            for i in results:
+                i.append([i[0]] in likes)
+                flag = True
+                for j in watch:
+                if i[0] = j[0]:
+                    i.append(j[1])
+                    flag = False
+                    break
+                if flag:
+                    i.append(0)
+            columns = [col[0] for col in atrributes].append('likestatus')
+            columns.append('watchstatus')
+            query_dict = [dict(zip(columns, row)) for row in results]
+            # query_dict = dictfetchall(cursor)
         if query_dict is not None:
             return HttpResponse(json.dumps(query_dict))
         else:
