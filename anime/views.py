@@ -313,7 +313,7 @@ def change_watch_status(request):
         json_data = post_json(request)
         email = json_data['email']
         animeID = json_data['animeID']
-        status = json_data['watchstatus']
+        status = json_data['action']
         with connection.cursor() as cursor:
             cursor.execute('SELECT status FROM WatchStatus WHERE email = %s AND animeID = %s', [email, animeID])
             if cursor.fetchone() is None:
