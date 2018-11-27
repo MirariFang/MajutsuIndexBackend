@@ -111,6 +111,27 @@ def anime_display(request):
 
 @csrf_exempt
 def recommend(request):
+    if request.method == 'GET':
+        email = request.GET.get('UserEmail')
+
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                SELECT animeID, name, imageLink 
+                FROM (Anime JOIN LikeAnime on Anime.animeID = WatchStatus.animeID) JOIN Anime_Tag
+                WHERE email = %s AND ''', [email])
+            results = tuple_to_list(cursor.fetchall())
+            cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
+            likes = tuple_to_list(cursor.fetchall())
+            for i in results:
+                i.append([i[0]] in likes)
+                i.append(1)
+            columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
+            query_dict = [dict(zip(columns, row)) for row in results]
+        if query_dict is not None:
+            return HttpResponse(json.dumps(query_dict))
+        else:
+            return HttpResponse('empty')
+
     return HttpResponse('Recommend tab placeholder')
 
 @csrf_exempt
@@ -120,9 +141,9 @@ def wishlist(request):
 
         with connection.cursor() as cursor:
             cursor.execute('''
-                SELECT animeID, name, imageLink 
-                FROM Anime JOIN WatchStatus on Anime.animeID = WatchStatus.animeID
-                WHERE email = %s AND status = 1''', [email])
+                SELECT a.animeID, a.name, a.imageLink 
+                FROM (Anime JOIN WatchStatus on Anime.animeID = WatchStatus.animeID) AS a
+                WHERE a.email = %s AND a.status = 1''', [email])
             results = tuple_to_list(cursor.fetchall())
             # atrributes = cursor.description
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
