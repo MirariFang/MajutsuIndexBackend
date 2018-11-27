@@ -114,11 +114,19 @@ def recommend(request):
     if request.method == 'GET':
         email = request.GET.get('UserEmail')
 
+        # FROM (Anime JOIN LikeAnime ON Anime.animeID = WatchStatus.animeID) AS a
+        #     JOIN Anime_Tag ON a.animeID = ANime_Tag.animeID AS b
         with connection.cursor() as cursor:
             cursor.execute('''
-                SELECT animeID, name, imageLink 
-                FROM (Anime JOIN LikeAnime on Anime.animeID = WatchStatus.animeID) JOIN Anime_Tag
-                WHERE email = %s AND ''', [email])
+                CREATE TEMPORARY TABLE s AS
+                (SELECT b.tag, COUNT(b.animeID) AS ct
+                FROM (LikeAnime JOIN Anime_Tag ON LikeAnime.animeID = ANime_Tag.animeID) AS b 
+                WHERE b.email = %s 
+                GROUP BY b.tag);
+                SELECT s.animeID, SUM(s.ct) AS sum
+                FROM s JOIN Anime_Tag t ON s.tag = t.tag 
+                GROUP BY t.animeID
+                ORDER BY sum''', [email])
             results = tuple_to_list(cursor.fetchall())
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
             likes = tuple_to_list(cursor.fetchall())
@@ -142,8 +150,8 @@ def wishlist(request):
         with connection.cursor() as cursor:
             cursor.execute('''
                 SELECT a.animeID, a.name, a.imageLink 
-                FROM (Anime JOIN WatchStatus on Anime.animeID = WatchStatus.animeID) AS a
-                WHERE a.email = %s AND a.status = 1''', [email])
+                FROM Anime a JOIN WatchStatus w on a.animeID = w.animeID
+                WHERE a.email = %s AND w.status = 1''', [email])
             results = tuple_to_list(cursor.fetchall())
             # atrributes = cursor.description
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
@@ -207,9 +215,9 @@ def search_fav(request):
         query_dict = None
         with connection.cursor() as cursor:
             cursor.execute('''
-                SELECT animeID, name, imageLink
-                FROM Anime JOIN LikeAnime on Anime.animeID = LikeAnime.animeID
-                WHERE email=%s AND name LIKE \'%%%s%%\'''', [email, keyword])
+                SELECT a.animeID, a.name, a.imageLink 
+                FROM Anime a JOIN LikeAnime l on a.animeID = l.animeID
+                WHERE a.email=%s AND a.name LIKE %s''', [email, '%'+keyword+'%'])
             results = tuple_to_list(cursor.fetchall())
             # atrributes = cursor.description
             cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
