@@ -73,7 +73,7 @@ def anime_display(request):
         # likes = tuple_to_list(like_cursor.fetchall())
         # watch = tuple_to_list(watch_cursor.fetchall())
         with connection.cursor() as cursor:
-            cursor.execute('SELECT animeID, name FROM Anime')
+            cursor.execute('SELECT animeID, name, imageLink FROM Anime')
             animes = tuple_to_list(cursor.fetchall())
             atrributes = cursor.description
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
@@ -119,7 +119,7 @@ def search(request):
             #     FROM Anime JOIN WatchStatus 
             #     WHERE email=%s AND name LIKE \'\%%s\%\'''', [email, name])
             cursor.execute('''
-                SELECT animeID, name 
+                SELECT animeID, name, imageLink 
                 FROM Anime 
                 WHERE name LIKE \'\%%s\%\'''', [name])
             results = tuple_to_list(cursor.fetchall())
@@ -130,6 +130,44 @@ def search(request):
             watch = tuple_to_list(cursor.fetchall())
             for i in results:
                 i.append([i[0]] in likes)
+                flag = True
+                for j in watch:
+                if i[0] = j[0]:
+                    i.append(j[1])
+                    flag = False
+                    break
+                if flag:
+                    i.append(0)
+            columns = [col[0] for col in atrributes].append('likestatus')
+            columns.append('watchstatus')
+            query_dict = [dict(zip(columns, row)) for row in results]
+            # query_dict = dictfetchall(cursor)
+        if query_dict is not None:
+            return HttpResponse(json.dumps(query_dict))
+        else:
+            return HttpResponse('empty')
+
+    return HttpResponse('Recommend tab placeholder')
+
+@csrf_exempt
+def search_fav(request):
+    if request.method == 'GET':
+        json_data = post_json(request)
+        email = json_data['email']
+        keyword = json_data['name']
+
+        query_dict = None
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                SELECT animeID, name, imageLink
+                FROM Anime JOIN LikeAnime on Anime.animeID = LikeAnime.animeID
+                WHERE email=%s AND name LIKE \'\%%s\%\'''', [email, name])
+            results = tuple_to_list(cursor.fetchall())
+            atrributes = cursor.description
+            cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
+            watch = tuple_to_list(cursor.fetchall())
+            for i in results:
+                i.append(1)
                 flag = True
                 for j in watch:
                 if i[0] = j[0]:
