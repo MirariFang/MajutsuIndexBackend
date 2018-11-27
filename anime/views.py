@@ -44,6 +44,12 @@ def register(request):
         username = json_data['username']
         password = json_data['password']
         gender = json_data['gender']
+        if gender == 'male':
+            gender = 1
+        elif gender == 'female':
+            gender = 2
+        else:
+            gender = 3
         with connection.cursor() as cursor:
             cursor.execute('SELECT Email FROM User WHERE Email = %s', [email])
             row = cursor.fetchone()
@@ -59,8 +65,7 @@ def register(request):
 @csrf_exempt
 def anime_display(request):
     if request.method == 'GET':
-        json_data = post_json(request)
-        email = json_data['email']
+        email = request.GET.get('UserEmail')
 
         query_dict = None
         # with connection.cursor() as anime_cursor:
@@ -75,7 +80,7 @@ def anime_display(request):
         with connection.cursor() as cursor:
             cursor.execute('SELECT animeID, name, imageLink FROM Anime')
             animes = tuple_to_list(cursor.fetchall())
-            atrributes = cursor.description
+            #atrributes = cursor.description
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
             likes = tuple_to_list(cursor.fetchall())
             cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
@@ -90,8 +95,11 @@ def anime_display(request):
                     break
                 if flag:
                     i.append(0)
-        columns = [col[0] for col in atrributes].append('likestatus')
-        columns.append('watchstatus')
+        # print(atrributes)
+        # columns = [col[0] for col in atrributes].append('likestatus')
+        # print(columns)
+        # columns.append('watchstatus')
+        columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
         query_dict = [dict(zip(columns, row)) for row in animes]
             # query_dict = dictfetchall(cursor)
         if query_dict is not None:
@@ -108,9 +116,8 @@ def recommend(request):
 @csrf_exempt
 def search(request):
     if request.method == 'GET':
-        json_data = post_json(request)
-        email = json_data['email']
-        keyword = json_data['name']
+        email = request.GET.get('UserEmail')
+        keyword = request.GET.get('name')
 
         query_dict = None
         with connection.cursor() as cursor:
@@ -138,8 +145,7 @@ def search(request):
                         break
                     if flag:
                         i.append(0)
-            columns = [col[0] for col in atrributes].append('likestatus')
-            columns.append('watchstatus')
+            columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
             query_dict = [dict(zip(columns, row)) for row in results]
             # query_dict = dictfetchall(cursor)
         if query_dict is not None:
@@ -152,9 +158,8 @@ def search(request):
 @csrf_exempt
 def search_fav(request):
     if request.method == 'GET':
-        json_data = post_json(request)
-        email = json_data['email']
-        keyword = json_data['name']
+        email = request.GET.get('UserEmail')
+        keyword = request.GET.get('name')
 
         query_dict = None
         with connection.cursor() as cursor:
@@ -176,8 +181,7 @@ def search_fav(request):
                         break
                     if flag:
                         i.append(0)
-            columns = [col[0] for col in atrributes].append('likestatus')
-            columns.append('watchstatus')
+            columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
             query_dict = [dict(zip(columns, row)) for row in results]
             # query_dict = dictfetchall(cursor)
         if query_dict is not None:
@@ -190,8 +194,8 @@ def search_fav(request):
 @csrf_exempt
 def fav(request):
     if request.method == 'GET':
-        json_data = post_json(request)
-        email = json_data['email']
+        email = request.GET.get('UserEmail')
+
         with connection.cursor() as cursor:
             # Return full fav list
             cursor.execute(
@@ -229,9 +233,9 @@ def fav(request):
 @csrf_exempt
 def change_watch_status(request):
     if request.method == 'GET':
-        json_data = post_json(request)
-        email = json_data['email']
-        animeID = json_data['animeID']
+        email = request.GET.get('UserEmail')
+        keyword = request.GET.get('name')
+        animeID = request.GET.get('animeID')
         with connection.cursor() as cursor:
             cursor.execute(
                 'SELECT a.animeID AS animeID, a.name AS name, w.status AS watchstatus FROM Anime AS a, WatchStatus AS w WHERE w.email = %s AND w.animeID = %s AND w.animeID = a.animeID',
