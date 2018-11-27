@@ -84,12 +84,12 @@ def anime_display(request):
             i.append([i[0]] in likes)
             flag = True
             for j in watch:
-            if i[0] = j[0]:
-                i.append(j[1])
-                flag = False
-                break
-            if flag:
-                i.append(0)
+                if i[0] == j[0]:
+                    i.append(j[1])
+                    flag = False
+                    break
+                if flag:
+                    i.append(0)
         columns = [col[0] for col in atrributes].append('likestatus')
         columns.append('watchstatus')
         query_dict = [dict(zip(columns, row)) for row in animes]
@@ -121,7 +121,7 @@ def search(request):
             cursor.execute('''
                 SELECT animeID, name, imageLink 
                 FROM Anime 
-                WHERE name LIKE \'\%%s\%\'''', [name])
+                WHERE name LIKE \'%%%s%%\'''', [keyword])
             results = tuple_to_list(cursor.fetchall())
             atrributes = cursor.description
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
@@ -132,12 +132,12 @@ def search(request):
                 i.append([i[0]] in likes)
                 flag = True
                 for j in watch:
-                if i[0] = j[0]:
-                    i.append(j[1])
-                    flag = False
-                    break
-                if flag:
-                    i.append(0)
+                    if i[0] == j[0]:
+                        i.append(j[1])
+                        flag = False
+                        break
+                    if flag:
+                        i.append(0)
             columns = [col[0] for col in atrributes].append('likestatus')
             columns.append('watchstatus')
             query_dict = [dict(zip(columns, row)) for row in results]
@@ -161,7 +161,7 @@ def search_fav(request):
             cursor.execute('''
                 SELECT animeID, name, imageLink
                 FROM Anime JOIN LikeAnime on Anime.animeID = LikeAnime.animeID
-                WHERE email=%s AND name LIKE \'\%%s\%\'''', [email, name])
+                WHERE email=%s AND name LIKE \'%%%s%%\'''', [email, keyword])
             results = tuple_to_list(cursor.fetchall())
             atrributes = cursor.description
             cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
@@ -170,12 +170,12 @@ def search_fav(request):
                 i.append(1)
                 flag = True
                 for j in watch:
-                if i[0] = j[0]:
-                    i.append(j[1])
-                    flag = False
-                    break
-                if flag:
-                    i.append(0)
+                    if i[0] == j[0]:
+                        i.append(j[1])
+                        flag = False
+                        break
+                    if flag:
+                        i.append(0)
             columns = [col[0] for col in atrributes].append('likestatus')
             columns.append('watchstatus')
             query_dict = [dict(zip(columns, row)) for row in results]
