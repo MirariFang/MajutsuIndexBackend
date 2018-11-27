@@ -117,18 +117,14 @@ def recommend(request):
 def search(request):
     if request.method == 'GET':
         email = request.GET.get('UserEmail')
-        keyword = request.GET.get('name')
+        keyword = request.GET.get('value')
 
         query_dict = None
         with connection.cursor() as cursor:
-            # cursor.execute('''
-            #     SELECT animeID, name, status, fav 
-            #     FROM Anime JOIN WatchStatus 
-            #     WHERE email=%s AND name LIKE \'\%%s\%\'''', [email, name])
             cursor.execute('''
                 SELECT animeID, name, imageLink 
                 FROM Anime 
-                WHERE name LIKE \'%%%s%%\'''', [keyword])
+                WHERE name LIKE %s''', ['%'+keyword+'%'])
             results = tuple_to_list(cursor.fetchall())
             # atrributes = cursor.description
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
