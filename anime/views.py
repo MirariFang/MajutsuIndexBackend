@@ -151,7 +151,7 @@ def wishlist(request):
             cursor.execute('''
                 SELECT a.animeID, a.name, a.imageLink 
                 FROM Anime a JOIN WatchStatus w on a.animeID = w.animeID
-                WHERE a.email = %s AND w.status = 1''', [email])
+                WHERE w.email = %s AND w.status = 1''', [email])
             results = tuple_to_list(cursor.fetchall())
             # atrributes = cursor.description
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
