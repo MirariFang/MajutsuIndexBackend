@@ -130,7 +130,7 @@ def search(request):
                 FROM Anime 
                 WHERE name LIKE \'%%%s%%\'''', [keyword])
             results = tuple_to_list(cursor.fetchall())
-            atrributes = cursor.description
+            # atrributes = cursor.description
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
             likes = tuple_to_list(cursor.fetchall())
             cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
@@ -168,7 +168,7 @@ def search_fav(request):
                 FROM Anime JOIN LikeAnime on Anime.animeID = LikeAnime.animeID
                 WHERE email=%s AND name LIKE \'%%%s%%\'''', [email, keyword])
             results = tuple_to_list(cursor.fetchall())
-            atrributes = cursor.description
+            # atrributes = cursor.description
             cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
             watch = tuple_to_list(cursor.fetchall())
             for i in results:
@@ -195,13 +195,26 @@ def search_fav(request):
 def fav(request):
     if request.method == 'GET':
         email = request.GET.get('UserEmail')
-
         with connection.cursor() as cursor:
             # Return full fav list
             cursor.execute(
-                'SELECT DISTINCT a.animeID AS animeID, a.name AS name FROM Anime AS a, LikeAnime AS l WHERE l.email = %s AND l.animeID = a.animeID',
+                'SELECT DISTINCT a.animeID AS animeID, a.name AS name, a.imageLink AS imageLink FROM Anime AS a, LikeAnime AS l WHERE l.email = %s AND l.animeID = a.animeID',
                 [email])
-            query_dict = dictfetchall(cursor)
+            fav = tuple_to_list(cursor.fetchall())
+            cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
+            watch = tuple_to_list(cursor.fetchall())
+            for i in fav:
+                i.append(1)
+                flag = True
+                for j in watch:
+                    if i[0] == j[0]:
+                        i.append(j[1])
+                        flag = False
+                        break
+                    if flag:
+                        i.append(0)
+            columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
+            query_dict = [dict(zip(columns, row)) for row in results]
             if query_dict is not None:
                 return HttpResponse(json.dumps(query_dict))
             else:
@@ -234,7 +247,7 @@ def fav(request):
 def change_watch_status(request):
     if request.method == 'GET':
         email = request.GET.get('UserEmail')
-        keyword = request.GET.get('name')
+        # keyword = request.GET.get('name')
         animeID = request.GET.get('animeID')
         with connection.cursor() as cursor:
             cursor.execute(
