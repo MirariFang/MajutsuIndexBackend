@@ -114,8 +114,6 @@ def recommend(request):
     if request.method == 'GET':
         email = request.GET.get('UserEmail')
 
-        # FROM (Anime JOIN LikeAnime ON Anime.animeID = WatchStatus.animeID) AS a
-        #     JOIN Anime_Tag ON a.animeID = ANime_Tag.animeID AS b
         with connection.cursor() as cursor:
             cursor.execute('''
                 CREATE TEMPORARY TABLE s AS
@@ -123,18 +121,31 @@ def recommend(request):
                 FROM (LikeAnime JOIN Anime_Tag ON LikeAnime.animeID = ANime_Tag.animeID) AS b 
                 WHERE b.email = %s 
                 GROUP BY b.tag);
-                SELECT s.animeID, SUM(s.ct) AS sum
+                CREATE TEMPORARY TABLE m AS 
+                (SELECT s.animeID 
                 FROM s JOIN Anime_Tag t ON s.tag = t.tag 
-                GROUP BY t.animeID
-                ORDER BY sum''', [email])
-            results = tuple_to_list(cursor.fetchall())
+                GROUP BY t.animeID 
+                ORDER BY SUM(s.ct) DESC);
+                SELECT a.animeID, a.name, a.imageLink 
+                FROM m JOIN Anime a ON m.animeID = a.animeID
+                ''', [email])
+            animes = tuple_to_list(cursor.fetchall())
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
             likes = tuple_to_list(cursor.fetchall())
-            for i in results:
+            cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
+            watch = tuple_to_list(cursor.fetchall())
+            for i in animes:
                 i.append([i[0]] in likes)
-                i.append(1)
+                flag = True
+                for j in watch:
+                    if i[0] == j[0]:
+                        i.append(j[1])
+                        flag = False
+                        break
+                    if flag:
+                        i.append(0)
             columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
-            query_dict = [dict(zip(columns, row)) for row in results]
+            query_dict = [dict(zip(columns, row)) for row in animes]
         if query_dict is not None:
             return HttpResponse(json.dumps(query_dict))
         else:
