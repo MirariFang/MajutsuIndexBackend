@@ -122,7 +122,7 @@ def recommend(request):
                 WHERE l.email = %s 
                 GROUP BY t.tag);
                 CREATE TEMPORARY TABLE m AS 
-                (SELECT s.animeID 
+                (SELECT t.animeID 
                 FROM s JOIN Anime_Tag t ON s.tag = t.tag 
                 GROUP BY t.animeID 
                 ORDER BY SUM(s.ct) DESC);
