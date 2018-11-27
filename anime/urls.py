@@ -12,5 +12,6 @@ urlpatterns = [
     path('search/all', views.search, name='search'),
     path('search/fav', views.search_fav, name='search_fav'),
     path('animes/watchstatus', views.change_watch_status, name='status'),
-    path('animes/debugjson', views.debug_json, name='debug_json')
+    path('animes/debugjson', views.debug_json, name='debug_json'),
+    path('wish', views.wishlist, name='wishlist')
 ]
