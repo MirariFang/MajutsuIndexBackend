@@ -117,10 +117,10 @@ def recommend(request):
         with connection.cursor() as cursor:
             cursor.execute('''
                 CREATE TEMPORARY TABLE s AS
-                (SELECT b.tag, COUNT(b.animeID) AS ct
-                FROM (LikeAnime JOIN Anime_Tag ON LikeAnime.animeID = ANime_Tag.animeID) AS b 
-                WHERE b.email = %s 
-                GROUP BY b.tag);
+                (SELECT t.tag, COUNT(t.animeID) AS ct
+                FROM LikeAnime l JOIN Anime_Tag t ON l.animeID = t.animeID
+                WHERE l.email = %s 
+                GROUP BY t.tag);
                 CREATE TEMPORARY TABLE m AS 
                 (SELECT s.animeID 
                 FROM s JOIN Anime_Tag t ON s.tag = t.tag 
