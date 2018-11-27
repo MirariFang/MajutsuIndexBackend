@@ -214,7 +214,7 @@ def fav(request):
                     if flag:
                         i.append(0)
             columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
-            query_dict = [dict(zip(columns, row)) for row in results]
+            query_dict = [dict(zip(columns, row)) for row in fav]
             if query_dict is not None:
                 return HttpResponse(json.dumps(query_dict))
             else:
