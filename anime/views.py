@@ -149,7 +149,7 @@ def detail_page(request):
                     break
                 if flag:
                     i.append(0)
-        columns = ['animeID', 'name', 'imageLink', 'releaseDate', 'releaseYear', 'episode', 'studio', 'director', 'tags', 'likestatus', 'watchstatus' 'rate']
+        columns = ['animeID', 'name', 'imageLink', 'releaseDate', 'releaseYear', 'episode', 'studio', 'director', 'tags', 'likestatus', 'watchstatus', 'rate']
         query_dict = [dict(zip(columns, row)) for row in animes]
             # query_dict = dictfetchall(cursor)
         if query_dict is not None:
