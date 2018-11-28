@@ -154,6 +154,57 @@ def recommend(request):
     return HttpResponse('Recommend tab placeholder')
 
 @csrf_exempt
+def popular(request):
+    if request.method == 'GET':
+        email = request.GET.get('UserEmail')
+
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                CREATE TEMPORARY TABLE k AS 
+                (SELECT l.animeID, COUNT(l.email) AS ct 
+                FROM LikeAnime l 
+                GROUP BY l.animeID);
+                CREATE TEMPORARY TABLE s AS 
+                (SELECT r.animeID, AVG(r.rate) AS avg 
+                FROM RateAnime r 
+                GROUP BY r.animeID);
+                CREATE TEMPORARY TABLE n AS 
+                (SELECT w.animeID, COUNT(w.email) AS avg 
+                FROM WatchStatus w 
+                WHERE w.status >= 1 AND w.status <= 3 
+                GROUP BY w.animeID);
+                CREATE TEMPORARY TABLE m AS 
+                (SELECT s.animeID, SUM(s.ct + 4 * EXP(-1/k.ct)) AS score 
+                FROM s JOIN k ON s.animeID = k.animeID JOIN n ON k.animeID = n.animeID
+                ORDER BY s.avg + 3 * EXP(-1/k.ct) + 3 * EXP(-1/n.ct) DESC);
+                SELECT a.animeID, a.name, a.imageLink 
+                FROM m JOIN Anime a ON m.animeID = a.animeID
+                ''', [email])
+            animes = tuple_to_list(cursor.fetchall())
+            cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
+            likes = tuple_to_list(cursor.fetchall())
+            cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
+            watch = tuple_to_list(cursor.fetchall())
+            for i in animes:
+                i.append([i[0]] in likes)
+                flag = True
+                for j in watch:
+                    if i[0] == j[0]:
+                        i.append(j[1])
+                        flag = False
+                        break
+                    if flag:
+                        i.append(0)
+            columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
+            query_dict = [dict(zip(columns, row)) for row in animes]
+        if query_dict is not None:
+            return HttpResponse(json.dumps(query_dict))
+        else:
+            return HttpResponse('empty')
+
+    return HttpResponse('Popular tab placeholder')
+
+@csrf_exempt
 def wishlist(request):
     if request.method == 'GET':
         email = request.GET.get('UserEmail')
