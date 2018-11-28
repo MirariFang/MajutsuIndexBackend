@@ -90,11 +90,11 @@ def anime_display(request):
             flag = True
             for j in watch:
                 if i[0] == j[0]:
-                    i.append(j[1])
+                    i.append(str(j[1]))
                     flag = False
                     break
                 if flag:
-                    i.append(0)
+                    i.append('0')
         # print(atrributes)
         # columns = [col[0] for col in atrributes].append('likestatus')
         # print(columns)
@@ -136,19 +136,19 @@ def detail_page(request):
             flag = True
             for j in watch:
                 if i[0] == j[0]:
-                    i.append(j[1])
+                    i.append(str(j[1]))
                     flag = False
                     break
                 if flag:
-                    i.append(0)
+                    i.append('0')
             flag = True
             for j in rate:
                 if i[0] == j[0]:
-                    i.append(j[1])
+                    i.append(str(j[1]))
                     flag = False
                     break
                 if flag:
-                    i.append(0)
+                    i.append('0')
         columns = ['animeID', 'name', 'imageLink', 'releaseDate', 'releaseYear', 'episode', 'studio', 'director', 'tags', 'likestatus', 'watchstatus', 'rate']
         query_dict = [dict(zip(columns, row)) for row in animes]
             # query_dict = dictfetchall(cursor)
@@ -174,14 +174,14 @@ def recommend(request):
                 ''', [email])
             cursor.execute('''
                 CREATE TEMPORARY TABLE m AS 
-                (SELECT t.animeID 
+                (SELECT t.animeID, SUM(s.ct) AS sum 
                 FROM s JOIN Anime_Tag t ON s.tag = t.tag 
-                GROUP BY t.animeID 
-                ORDER BY SUM(s.ct) DESC);
+                GROUP BY t.animeID ;
             ''')
             cursor.execute('''
             SELECT a.animeID, a.name, a.imageLink 
-                FROM m JOIN Anime a ON m.animeID = a.animeID;
+                FROM m JOIN Anime a ON m.animeID = a.animeID
+                ORDER BY m.sum DESC);
             ''')
             animes = tuple_to_list(cursor.fetchall())
             print(animes)
@@ -194,11 +194,11 @@ def recommend(request):
                 flag = True
                 for j in watch:
                     if i[0] == j[0]:
-                        i.append(j[1])
+                        i.append(str(j[1]))
                         flag = False
                         break
                     if flag:
-                        i.append(0)
+                        i.append('0')
             columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
             query_dict = [dict(zip(columns, row)) for row in animes]
             print(query_dict)
@@ -229,20 +229,20 @@ def popular(request):
             ''')
             cursor.execute('''
             CREATE TEMPORARY TABLE n AS 
-                (SELECT w.animeID, COUNT(w.email) AS avg 
+                (SELECT w.animeID, COUNT(w.email) AS ct 
                 FROM WatchStatus w 
                 WHERE w.status >= 1 AND w.status <= 3 
                 GROUP BY w.animeID);
             ''')
             cursor.execute('''
             CREATE TEMPORARY TABLE m AS 
-                (SELECT s.animeID, s.avg + 3 * EXP(-1/k.ct) + 3 * EXP(-1/n.avg) AS score 
-                FROM s JOIN k ON s.animeID = k.animeID JOIN n ON k.animeID = n.animeID
-                ORDER BY s.avg + 3 * EXP(-1/k.ct) + 3 * EXP(-1/n.avg) DESC);
+                (SELECT s.animeID, s.avg + 3 * EXP(-1/k.ct) + 3 * EXP(-1/n.ct) AS score 
+                FROM s JOIN k ON s.animeID = k.animeID JOIN n ON k.animeID = n.animeID;
             ''')
             cursor.execute('''
             SELECT a.animeID, a.name, a.imageLink 
-                FROM m JOIN Anime a ON m.animeID = a.animeID;
+                FROM m JOIN Anime a ON m.animeID = a.animeID
+                ORDER BY m.score;
             ''')
             animes = tuple_to_list(cursor.fetchall())
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
@@ -254,11 +254,11 @@ def popular(request):
                 flag = True
                 for j in watch:
                     if i[0] == j[0]:
-                        i.append(j[1])
+                        i.append(str(j[1]))
                         flag = False
                         break
                     if flag:
-                        i.append(0)
+                        i.append('0')
             columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
             query_dict = [dict(zip(columns, row)) for row in animes]
         if query_dict is not None:
@@ -284,7 +284,7 @@ def wishlist(request):
             likes = tuple_to_list(cursor.fetchall())
             for i in results:
                 i.append([i[0]] in likes)
-                i.append(1)
+                i.append('1')
             columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
             query_dict = [dict(zip(columns, row)) for row in results]
         if query_dict is not None:
@@ -317,11 +317,11 @@ def search(request):
                 flag = True
                 for j in watch:
                     if i[0] == j[0]:
-                        i.append(j[1])
+                        i.append(str(j[1]))
                         flag = False
                         break
                     if flag:
-                        i.append(0)
+                        i.append('0')
             columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
             query_dict = [dict(zip(columns, row)) for row in results]
             # query_dict = dictfetchall(cursor)
@@ -353,11 +353,11 @@ def search_fav(request):
                 flag = True
                 for j in watch:
                     if i[0] == j[0]:
-                        i.append(j[1])
+                        i.append(str(j[1]))
                         flag = False
                         break
                     if flag:
-                        i.append(0)
+                        i.append('0')
             columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
             query_dict = [dict(zip(columns, row)) for row in results]
             # query_dict = dictfetchall(cursor)
@@ -385,11 +385,11 @@ def fav(request):
                 flag = True
                 for j in watch:
                     if i[0] == j[0]:
-                        i.append(j[1])
+                        i.append(str(j[1]))
                         flag = False
                         break
                     if flag:
-                        i.append(0)
+                        i.append('0')
             columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
             query_dict = [dict(zip(columns, row)) for row in fav]
             if query_dict is not None:
