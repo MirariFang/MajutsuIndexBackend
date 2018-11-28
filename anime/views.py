@@ -110,6 +110,56 @@ def anime_display(request):
     return HttpResponse('Anime display placeholder')
 
 @csrf_exempt
+def detail_page(request):
+    if request.method == 'GET':
+        email = request.GET.get('UserEmail')
+        animeID = request.GET.get('animeID')
+
+        with connection.cursor() as cursor:
+            cursor.execute('''
+            SELECT animeID, name, imageLink, releaseDate, releaseYear, episode, studio, director, tags 
+            FROM Anime
+            WHERE animeID = %s''', [animeID])
+            animes = tuple_to_list(cursor.fetchall())
+            cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s AND animeID = %s', [email, animeID])
+            likes = tuple_to_list(cursor.fetchall())
+            cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s AND animeID = %s', [email, animeID])
+            watch = tuple_to_list(cursor.fetchall())
+            cursor.execute('''
+            SELECT animeID, AVG(rate) 
+            FROM RateAnime 
+            GROUP BY animeID
+            HAVING animeID = %s''', [animeID])
+            rate = tuple_to_list(cursor.fetchall())
+        for i in animes:
+            i.append([i[0]] in likes)
+            flag = True
+            for j in watch:
+                if i[0] == j[0]:
+                    i.append(j[1])
+                    flag = False
+                    break
+                if flag:
+                    i.append(0)
+            flag = True
+            for j in rate:
+                if i[0] == j[0]:
+                    i.append(j[1])
+                    flag = False
+                    break
+                if flag:
+                    i.append(0)
+        columns = ['animeID', 'name', 'imageLink', 'releaseDate', 'releaseYear', 'episode', 'studio', 'director', 'tags', 'likestatus', 'watchstatus' 'rate']
+        query_dict = [dict(zip(columns, row)) for row in animes]
+            # query_dict = dictfetchall(cursor)
+        if query_dict is not None:
+            return HttpResponse(json.dumps(query_dict))
+        else:
+            return HttpResponse('empty')
+    
+    return HttpResponse('Detail_page placeholder')
+
+@csrf_exempt
 def recommend(request):
     if request.method == 'GET':
         email = request.GET.get('UserEmail')
