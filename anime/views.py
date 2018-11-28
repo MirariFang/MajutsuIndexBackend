@@ -171,14 +171,18 @@ def recommend(request):
                 FROM LikeAnime l JOIN Anime_Tag t ON l.animeID = t.animeID
                 WHERE l.email = %s 
                 GROUP BY t.tag);
+                ''', [email])
+            cursor.execute('''
                 CREATE TEMPORARY TABLE m AS 
                 (SELECT t.animeID 
                 FROM s JOIN Anime_Tag t ON s.tag = t.tag 
                 GROUP BY t.animeID 
                 ORDER BY SUM(s.ct) DESC);
-                SELECT a.animeID, a.name, a.imageLink 
+            ''')
+            cursor.execute('''
+            SELECT a.animeID, a.name, a.imageLink 
                 FROM m JOIN Anime a ON m.animeID = a.animeID;
-                ''', [email])
+            ''')
             animes = tuple_to_list(cursor.fetchall())
             print(animes)
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
@@ -216,26 +220,30 @@ def popular(request):
                 (SELECT l.animeID, COUNT(l.email) AS ct 
                 FROM LikeAnime l 
                 GROUP BY l.animeID);
-                CREATE TEMPORARY TABLE s AS 
+                ''')
+            cursor.execute('''
+            CREATE TEMPORARY TABLE s AS 
                 (SELECT r.animeID, AVG(r.rate) AS avg 
                 FROM RateAnime r 
                 GROUP BY r.animeID);
-                CREATE TEMPORARY TABLE n AS 
+            ''')
+            cursor.execute('''
+            CREATE TEMPORARY TABLE n AS 
                 (SELECT w.animeID, COUNT(w.email) AS avg 
                 FROM WatchStatus w 
                 WHERE w.status >= 1 AND w.status <= 3 
                 GROUP BY w.animeID);
-                CREATE TEMPORARY TABLE m AS 
+            ''')
+            cursor.execute('''
+            CREATE TEMPORARY TABLE m AS 
                 (SELECT s.animeID, s.avg + 3 * EXP(-1/k.ct) + 3 * EXP(-1/n.avg) AS score 
                 FROM s JOIN k ON s.animeID = k.animeID JOIN n ON k.animeID = n.animeID
                 ORDER BY s.avg + 3 * EXP(-1/k.ct) + 3 * EXP(-1/n.avg) DESC);
-                SELECT a.animeID, a.name, a.imageLink 
+            ''')
+            cursor.execute('''
+            SELECT a.animeID, a.name, a.imageLink 
                 FROM m JOIN Anime a ON m.animeID = a.animeID;
-                DROP TEMPORARY TABLE s;
-                DROP TEMPORARY TABLE m;
-                DROP TEMPORARY TABLE k;
-                DROP TEMPORARY TABLE n;
-                ''')
+            ''')
             animes = tuple_to_list(cursor.fetchall())
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
             likes = tuple_to_list(cursor.fetchall())
