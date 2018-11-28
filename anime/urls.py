@@ -19,4 +19,6 @@ urlpatterns = [
     path('animes/popular', views.popular, name='popular'),
     path('rate', views.rate, name='rate'),
     path('status/likestatus', views.anime_like, name='like_status'),
+    path('watched', views.watched, name='watched'),
+    path('watching', views.watching, name='watching')
 ]
