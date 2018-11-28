@@ -234,7 +234,7 @@ def popular(request):
             cursor.execute('''
             CREATE TEMPORARY TABLE m AS 
                 (SELECT s.animeID, s.avg + 3 * EXP(-1/k.ct) + 3 * EXP(-1/n.ct) AS score 
-                FROM s JOIN k ON s.animeID = k.animeID JOIN n ON k.animeID = n.animeID;
+                FROM s JOIN k ON s.animeID = k.animeID JOIN n ON k.animeID = n.animeID);
             ''')
             cursor.execute('''
             SELECT a.animeID, a.name, a.imageLink 
@@ -436,7 +436,7 @@ def change_watch_status(request):
         json_data = post_json(request)
         email = json_data['email']
         animeID = json_data['animeID']
-        status = json_data['action']
+        status = json_data['watchstatus']
         with connection.cursor() as cursor:
             cursor.execute('SELECT status FROM WatchStatus WHERE email = %s AND animeID = %s', [email, animeID])
             if cursor.fetchone() is None:
@@ -470,7 +470,7 @@ def rate(request):
         json_data = post_json(request)
         email = json_data['email']
         animeID = json_data['animeID']
-        rate = json_data['rate']
+        rate = json_data['userrate']
         with connection.cursor() as cursor:
             cursor.execute('SELECT rate FROM RateAnime WHERE email = %s AND animeID = %s', [email, animeID])
             if cursor.fetchone() is None:
@@ -520,3 +520,17 @@ def date(request):
         return HttpResponse(json.dumps(query_dict))
     else:
         return HttpResponse('empty')
+
+@csrf_exempt
+def anime_like(request):
+    email = request.GET.get('UserEmail')
+    animeID = request.GET.get('animeID')
+    with connection.cursor() as cursor:
+        cursor.execute('''
+            SELECT * FROM LikeAnime WHERE email = %s AND animeID = %s
+        ''', [email, animeID])
+        if cursor.fetchone() is None:
+            return HttpResponse(json.dumps({'likestatus': 0}))
+        else:
+            return HttpResponse(json.dumps({'likestatus': 1}))
+        

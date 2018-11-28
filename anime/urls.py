@@ -11,10 +11,12 @@ urlpatterns = [
     path('animes/fav', views.fav, name='favorite'),
     path('search/all', views.search, name='search'),
     path('search/fav', views.search_fav, name='search_fav'),
-    path('animes/watchstatus', views.change_watch_status, name='status'),
+    path('search/date', views.date, name='search_date'),
+    path('watchstatus', views.change_watch_status, name='status'),
     path('animes/debugjson', views.debug_json, name='debug_json'),
     path('wish', views.wishlist, name='wishlist'),
     path('detail', views.detail_page, name='detail_page'),
     path('animes/popular', views.popular, name='popular'),
     path('rate', views.rate, name='rate'),
+    path('status/likestatus', views.anime_like, name='like_status'),
 ]
