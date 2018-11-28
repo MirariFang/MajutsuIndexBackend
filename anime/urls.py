@@ -15,5 +15,6 @@ urlpatterns = [
     path('animes/debugjson', views.debug_json, name='debug_json'),
     path('wish', views.wishlist, name='wishlist'),
     path('detail', views.detail_page, name='detail_page'),
-    path('animes/popular', views.popular, name='popular')
+    path('animes/popular', views.popular, name='popular'),
+    path('rate', views.rate, name='rate'),
 ]

@@ -66,17 +66,7 @@ def register(request):
 def anime_display(request):
     if request.method == 'GET':
         email = request.GET.get('UserEmail')
-
         query_dict = None
-        # with connection.cursor() as anime_cursor:
-        #     anime_cursor.execute('SELECT animeID, name FROM Anime')
-        # with connection.cursor() as like_cursor:
-        #     like_cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
-        # with connection.cursor() as watch_cursor:
-        #     watch_cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
-        # animes = tuple_to_list(anime_cursor.fetchall())
-        # likes = tuple_to_list(like_cursor.fetchall())
-        # watch = tuple_to_list(watch_cursor.fetchall())
         with connection.cursor() as cursor:
             cursor.execute('SELECT animeID, name, imageLink FROM Anime')
             animes = tuple_to_list(cursor.fetchall())
@@ -152,6 +142,7 @@ def detail_page(request):
         columns = ['animeID', 'name', 'imageLink', 'releaseDate', 'releaseYear', 'episode', 'studio', 'director', 'tags', 'likestatus', 'watchstatus', 'rate']
         query_dict = [dict(zip(columns, row)) for row in animes]
             # query_dict = dictfetchall(cursor)
+        print(query_dict)
         if query_dict is not None:
             return HttpResponse(json.dumps(query_dict))
         else:
@@ -455,17 +446,6 @@ def change_watch_status(request):
                 return HttpResponse(json.dumps(query_dict))
             else:
                 return HttpResponse('empty')
-        # json_data = post_json(request)
-        # email = json_data['email']
-        # animeID = json_data['animeID']
-        # status = json_data['action']
-        # with connection.cursor() as cursor:
-        #     cursor.execute('SELECT status FROM WatchStatus WHERE email = %s AND animeID = %s', [email, animeID])
-        #     if cursor.fetchone() is None:
-        #         cursor.execute('INSERT INTO WatchStatus (email, animeID, status) VALUES (%s, %s, %s)', [email, animeID, status])
-        #     else:
-        #         cursor.execute('UPDATE WatchStatus SET status = %s WHERE email = %s AND animeID = %s',[status, email, animeID])
-        # return HttpResponse('Change status OK')
     
     return HttpResponse('Change anime watching status')
 
@@ -492,3 +472,45 @@ def rate(request):
             else:
                 cursor.execute('UPDATE RateAnime SET rate = %s WHERE email = %s AND animeID = %s',[rate, email, animeID])
             return HttpResponse('OK')
+
+@csrf_exempt
+def date(request):
+    email = request.GET.get('UserEmail')
+    # year is a string
+    year = request.GET.get('year')
+    # month is a string
+    month = request.GET.get('month')
+    year = int(year)
+    month = int(month)
+    monthMapList = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    month = monthMapList[month - 1]
+
+    query_dict = None
+    with connection.cursor() as cursor:
+        cursor.execute('''
+            SELECT animeID, name, imageLink 
+            FROM Anime 
+            WHERE releaseDate LIKE %s AND releaseYear = %s''', ['%'+month, year])
+        results = tuple_to_list(cursor.fetchall())
+        # atrributes = cursor.description
+        cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
+        likes = tuple_to_list(cursor.fetchall())
+        cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
+        watch = tuple_to_list(cursor.fetchall())
+        for i in results:
+            i.append([i[0]] in likes)
+            flag = True
+            for j in watch:
+                if i[0] == j[0]:
+                    i.append(j[1])
+                    flag = False
+                    break
+                if flag:
+                    i.append(0)
+        columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
+        query_dict = [dict(zip(columns, row)) for row in results]
+        # query_dict = dictfetchall(cursor)
+    if query_dict is not None:
+        return HttpResponse(json.dumps(query_dict))
+    else:
+        return HttpResponse('empty')
