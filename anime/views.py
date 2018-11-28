@@ -382,7 +382,26 @@ def change_watch_status(request):
                 cursor.execute('INSERT INTO WatchStatus (email, animeID, status) VALUES (%s, %s, %s)', [email, animeID, status])
             else:
                 cursor.execute('UPDATE WatchStatus SET status = %s WHERE email = %s AND animeID = %s',[status, email, animeID])
-        return HttpResponse('Change status OK')
+            # Return full watchstatus list
+            cursor.execute(
+                'SELECT DISTINCT a.animeID AS animeID, a.name AS name FROM Anime AS a, WatchStatus AS w WHERE w.email = %s AND w.animeID = a.animeID',
+                [email])
+            query_dict = dictfetchall(cursor)
+            if query_dict is not None:
+                return HttpResponse(json.dumps(query_dict))
+            else:
+                return HttpResponse('empty')
+        # json_data = post_json(request)
+        # email = json_data['email']
+        # animeID = json_data['animeID']
+        # status = json_data['action']
+        # with connection.cursor() as cursor:
+        #     cursor.execute('SELECT status FROM WatchStatus WHERE email = %s AND animeID = %s', [email, animeID])
+        #     if cursor.fetchone() is None:
+        #         cursor.execute('INSERT INTO WatchStatus (email, animeID, status) VALUES (%s, %s, %s)', [email, animeID, status])
+        #     else:
+        #         cursor.execute('UPDATE WatchStatus SET status = %s WHERE email = %s AND animeID = %s',[status, email, animeID])
+        # return HttpResponse('Change status OK')
     
     return HttpResponse('Change anime watching status')
 
