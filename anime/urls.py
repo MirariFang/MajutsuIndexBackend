@@ -13,7 +13,7 @@ urlpatterns = [
     path('search/fav', views.search_fav, name='search_fav'),
     path('animes/watchstatus', views.change_watch_status, name='status'),
     path('animes/debugjson', views.debug_json, name='debug_json'),
-    path('animes/wish', views.wishlist, name='wishlist'),
+    path('wish', views.wishlist, name='wishlist'),
     path('detail', views.detail_page, name='detail_page'),
     path('animes/popular', views.popular, name='popular')
 ]

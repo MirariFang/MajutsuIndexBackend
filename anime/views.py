@@ -177,9 +177,10 @@ def recommend(request):
                 GROUP BY t.animeID 
                 ORDER BY SUM(s.ct) DESC);
                 SELECT a.animeID, a.name, a.imageLink 
-                FROM m JOIN Anime a ON m.animeID = a.animeID
+                FROM m JOIN Anime a ON m.animeID = a.animeID;
                 ''', [email])
             animes = tuple_to_list(cursor.fetchall())
+            print(animes)
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
             likes = tuple_to_list(cursor.fetchall())
             cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
@@ -196,6 +197,7 @@ def recommend(request):
                         i.append(0)
             columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
             query_dict = [dict(zip(columns, row)) for row in animes]
+            print(query_dict)
         if query_dict is not None:
             return HttpResponse(json.dumps(query_dict))
         else:
@@ -224,12 +226,16 @@ def popular(request):
                 WHERE w.status >= 1 AND w.status <= 3 
                 GROUP BY w.animeID);
                 CREATE TEMPORARY TABLE m AS 
-                (SELECT s.animeID, SUM(s.ct + 4 * EXP(-1/k.ct)) AS score 
+                (SELECT s.animeID, s.avg + 3 * EXP(-1/k.ct) + 3 * EXP(-1/n.avg) AS score 
                 FROM s JOIN k ON s.animeID = k.animeID JOIN n ON k.animeID = n.animeID
-                ORDER BY s.avg + 3 * EXP(-1/k.ct) + 3 * EXP(-1/n.ct) DESC);
+                ORDER BY s.avg + 3 * EXP(-1/k.ct) + 3 * EXP(-1/n.avg) DESC);
                 SELECT a.animeID, a.name, a.imageLink 
-                FROM m JOIN Anime a ON m.animeID = a.animeID
-                ''', [email])
+                FROM m JOIN Anime a ON m.animeID = a.animeID;
+                DROP TEMPORARY TABLE s;
+                DROP TEMPORARY TABLE m;
+                DROP TEMPORARY TABLE k;
+                DROP TEMPORARY TABLE n;
+                ''')
             animes = tuple_to_list(cursor.fetchall())
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
             likes = tuple_to_list(cursor.fetchall())
@@ -463,3 +469,18 @@ def debug_json(request):
         return HttpResponse(json.dumps(a))
     else:
         return HttpResponse('Placeholder')
+
+@csrf_exempt
+def rate(request):
+    if request.method == 'POST':
+        json_data = post_json(request)
+        email = json_data['email']
+        animeID = json_data['animeID']
+        rate = json_data['rate']
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT rate FROM RateAnime WHERE email = %s AND animeID = %s', [email, animeID])
+            if cursor.fetchone() is None:
+                cursor.execute('INSERT INTO RateAnime (email, animeID, rate) VALUES (%s, %s, %s)', [email, animeID, rate])
+            else:
+                cursor.execute('UPDATE RateAnime SET rate = %s WHERE email = %s AND animeID = %s',[rate, email, animeID])
+            return HttpResponse('OK')
