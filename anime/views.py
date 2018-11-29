@@ -307,7 +307,7 @@ def watched(request):
             likes = tuple_to_list(cursor.fetchall())
             for i in results:
                 i.append([i[0]] in likes)
-                i.append('1')
+                i.append('3')
             columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
             query_dict = [dict(zip(columns, row)) for row in results]
         if query_dict is not None:
@@ -333,7 +333,7 @@ def watching(request):
             likes = tuple_to_list(cursor.fetchall())
             for i in results:
                 i.append([i[0]] in likes)
-                i.append('1')
+                i.append('2')
             columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
             query_dict = [dict(zip(columns, row)) for row in results]
         if query_dict is not None:
