@@ -184,8 +184,10 @@ def recommend(request):
                     (SELECT l.animeID FROM LikeAnime l WHERE l.email = %s) 
                     AND a.animeID NOT IN 
                     (SELECT w.animeID FROM WatchStatus w WHERE w.email = %s) 
+                    AND a.animeID NOT IN 
+                    (SELECT r.animeID FROM RateAnime r WHERE r.email = %s) 
                 ORDER BY m.sum DESC;
-            ''', [email, email])
+            ''', [email, email, email])
             animes = tuple_to_list(cursor.fetchall())
             # cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
             # likes = tuple_to_list(cursor.fetchall())
