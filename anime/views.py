@@ -233,13 +233,14 @@ def popular(request):
             ''')
             cursor.execute('''
             CREATE TEMPORARY TABLE m AS 
-                (SELECT s.animeID, s.avg + 3 * EXP(-1/k.ct) + 3 * EXP(-1/n.ct) AS score 
+                (SELECT s.animeID, s.avg + 4 * EXP(-1/k.ct) + 2 * EXP(-1/n.ct) AS score 
                 FROM s JOIN k ON s.animeID = k.animeID JOIN n ON k.animeID = n.animeID);
             ''')
             cursor.execute('''
             SELECT a.animeID, a.name, a.imageLink 
                 FROM m JOIN Anime a ON m.animeID = a.animeID
-                ORDER BY m.score;
+                ORDER BY m.score DESC
+                LIMIT 50;
             ''')
             animes = tuple_to_list(cursor.fetchall())
             cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
