@@ -178,25 +178,31 @@ def recommend(request):
                 GROUP BY t.animeID);
             ''')
             cursor.execute('''
-            SELECT a.animeID, a.name, a.imageLink 
-                FROM m JOIN Anime a ON m.animeID = a.animeID
+                SELECT a.animeID, a.name, a.imageLink 
+                FROM m JOIN Anime a ON m.animeID = a.animeID 
+                WHERE a.animeID NOT IN 
+                    (SELECT l.animeID FROM LikeAnime l WHERE l.email = %s) 
+                    AND a.animeID NOT IN 
+                    (SELECT w.animeID FROM WatchStatus w WHERE w.email = %s) 
                 ORDER BY m.sum DESC;
-            ''')
+            ''', [email, email])
             animes = tuple_to_list(cursor.fetchall())
-            cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
-            likes = tuple_to_list(cursor.fetchall())
-            cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
-            watch = tuple_to_list(cursor.fetchall())
+            # cursor.execute('SELECT animeID FROM LikeAnime WHERE email = %s', [email])
+            # likes = tuple_to_list(cursor.fetchall())
+            # cursor.execute('SELECT animeID, status FROM WatchStatus WHERE email = %s', [email])
+            # watch = tuple_to_list(cursor.fetchall())
             for i in animes:
-                i.append([i[0]] in likes)
-                flag = True
-                for j in watch:
-                    if i[0] == j[0]:
-                        i.append(str(j[1]))
-                        flag = False
-                        break
-                    if flag:
-                        i.append('0')
+                # i.append([i[0]] in likes)
+                # flag = True
+                # for j in watch:
+                #     if i[0] == j[0]:
+                #         i.append(str(j[1]))
+                #         flag = False
+                #         break
+                #     if flag:
+                #         i.append('0')
+                i.append(0)
+                i.append('0')
             columns = ['animeID', 'name', 'imageLink', 'likestatus', 'watchstatus']
             query_dict = [dict(zip(columns, row)) for row in animes]
         if query_dict is not None:
