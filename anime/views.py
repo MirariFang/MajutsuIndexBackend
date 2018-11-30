@@ -501,9 +501,9 @@ def change_watch_status(request):
         with connection.cursor() as cursor:
             cursor.execute('SELECT status FROM WatchStatus WHERE email = %s AND animeID = %s', [email, animeID])
             if cursor.fetchone() is None:
-                cursor.execute('INSERT INTO WatchStatus (email, animeID, status) VALUES (%s, %s, %s)', [email, animeID, status])
+                cursor.execute('INSERT INTO WatchStatus (email, animeID, status) VALUES (%s, %s, %s)', [email, animeID, int(status)])
             else:
-                cursor.execute('UPDATE WatchStatus SET status = %s WHERE email = %s AND animeID = %s',[status, email, animeID])
+                cursor.execute('UPDATE WatchStatus SET status = %s WHERE email = %s AND animeID = %s',[int(status), email, animeID])
             # Return full watchstatus list
             cursor.execute(
                 'SELECT DISTINCT a.animeID AS animeID, a.name AS name FROM Anime AS a, WatchStatus AS w WHERE w.email = %s AND w.animeID = a.animeID',
